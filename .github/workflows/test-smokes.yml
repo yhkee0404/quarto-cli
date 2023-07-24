@@ -33,6 +33,11 @@ jobs:
     env:
       QUARTO_TESTS_FORCE_NO_PIPENV: true
     steps:
+      - name: Check api rate limit
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh api rate_limit
+
       - name: Checkout Repo
         uses: actions/checkout@v3
 
@@ -206,3 +211,8 @@ jobs:
           }
         working-directory: tests
         shell: pwsh
+
+      - name: Check api rate limit
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh api rate_limit

@@ -17,6 +17,12 @@ on:
 #    branches: [main]
 
 jobs:
+  check-api:
+    runs-on: ubuntu-latest
+    steps:
+      - env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh api rate_limit
   jobs-matrix:
     runs-on: ubuntu-latest
     outputs:
