@@ -787,14 +787,65 @@ end, function(float)
       float.identifier)
   end
 
-  float.caption_long.content:insert(1, pandoc.RawInline("asciidoc", ". "))
-  float.caption_long.content:insert(pandoc.RawInline("asciidoc", "\n[[" .. float.identifier .. "]]\n===="))
-  return pandoc.Div({
-    float.caption_long,
-    -- pandoc.RawBlock("asciidoc", "[[" .. float.identifier .. "]]\n====\n"),
-    float.content,
-    pandoc.RawBlock("asciidoc", "====\n\n")
+  if float.type == "Table" and float.content.t == "Table" then
+    -- special-case the situation where the figure is Table and the content is Table
+    --
+    -- just return the table itself with the caption inside the table
+    float.content.caption.long = float.caption_long
+    float.content.attr = pandoc.Attr(float.identifier, float.classes or {}, float.attributes or {})
+    return pandoc.Blocks({
+      pandoc.RawBlock("asciidoc", "[[" .. float.identifier .. "]]\n"),
+      float.content
+    })
+  end
+
+  -- if this is a "linked figure Div", render it as such.
+  local link = quarto.utils.match("Plain/[1]/{Link}/[1]/{Image}")(float.content)
+  if link then
+    link[2].identifier = float.identifier
+    local caption = quarto.utils.as_inlines(float.caption_long)
+    table.insert(caption, 1, pandoc.RawInline("asciidoc", "."))
+    table.insert(caption, pandoc.RawInline("asciidoc", "\n[[" .. float.identifier .. "]]\n"))
+    table.insert(caption, link[1])
+    return caption
+  end
+
+  -- if the float consists of exactly one image,
+  -- render it as a pandoc Figure node.
+  local count = 0
+  local img
+  _quarto.ast.walk(float.content, {
+    Image = function(node)
+      count = count + 1
+      img = node
+    end
   })
+  if count == 1 then
+    print(float.content)
+    img.identifier = float.identifier
+    img.caption = quarto.utils.as_inlines(float.caption_long)
+    return pandoc.Figure(
+      {img},
+      {float.caption_long},
+      float.identifier)
+  end
+
+  -- Fallthrough case, render into a div.
+  float.caption_long.content:insert(1, pandoc.RawInline("asciidoc", "."))
+  float.caption_long.content:insert(pandoc.RawInline("asciidoc", "\n[[" .. float.identifier .. "]]\n===="))
+
+  if pandoc.utils.type(float.content) == "Blocks" then
+    float.content:insert(1, float.caption_long)
+    float.content:insert(pandoc.RawBlock("asciidoc", "====\n"))
+    return float.content
+  else
+    return pandoc.Blocks({
+      float.caption_long,
+      -- pandoc.RawBlock("asciidoc", "[[" .. float.identifier .. "]]\n====\n"),
+      float.content,
+      pandoc.RawBlock("asciidoc", "====\n\n")
+    })
+  end
 
 end)
 
@@ -866,6 +917,7 @@ end, function(float)
   local kind
   local supplement = ""
   local numbering = ""
+  local content = float.content
 
   if float.parent_id then
     kind = "quarto-subfloat-" .. ref
@@ -878,11 +930,17 @@ end, function(float)
 
   local caption_location = cap_location(float)
 
-  -- FIXME: Listings shouldn't emit centered blocks. I don't know how to disable that right now.
   -- FIXME: custom numbering doesn't work yet
+  
+  if (ref == "lst") then
+    -- FIXME: 
+    -- Listings shouldn't emit centered blocks. 
+    -- We don't know how to disable that right now using #show rules for #figures in template.
+    content = { pandoc.RawBlock("typst", "#set align(left)"), content }
+  end
 
   return make_typst_figure {
-    content = float.content,
+    content = content,
     caption_location = caption_location,
     caption = float.caption_long,
     kind = kind,

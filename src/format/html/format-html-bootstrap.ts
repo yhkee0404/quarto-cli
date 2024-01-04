@@ -4,7 +4,7 @@
  * Copyright (C) 2020-2022 Posit Software, PBC
  */
 
-import { Document, Element } from "../../core/deno-dom.ts";
+import { Document, Element, NodeList } from "../../core/deno-dom.ts";
 import { join } from "path/mod.ts";
 
 import { renderEjs } from "../../core/ejs.ts";
@@ -1567,6 +1567,7 @@ const footnoteMarginProcessor: MarginNodeProcessor = {
         // First try to grab a the citation or footnote.
         const refId = target.slice(1);
         const refContentsEl = doc.getElementById(refId);
+
         if (refContentsEl) {
           // Find and remove the backlink
           const backLinkEl = refContentsEl.querySelector(".footnote-back");
@@ -1614,11 +1615,21 @@ const footnoteMarginProcessor: MarginNodeProcessor = {
             );
           }
           const validParent = findValidParentEl(el);
-          addContentToMarginContainerForEl(
-            validParent || el,
-            refContentsEl,
-            doc,
-          );
+
+          if (refContentsEl.tagName === "LI") {
+            // Ensure that there is a list to place this footnote within
+            addNodesToMarginContainerForEl(
+              validParent || el,
+              refContentsEl.childNodes,
+              doc,
+            );
+          } else {
+            addContentToMarginContainerForEl(
+              validParent || el,
+              refContentsEl,
+              doc,
+            );
+          }
         }
       }
     }
@@ -1736,20 +1747,6 @@ const marginContainerForEl = (el: Element, doc: Document) => {
     return el.previousElementSibling;
   }
 
-  // Check for a list or table
-  const list = findOutermostParentElOfType(el, ["OL", "UL", "TABLE"]);
-  if (list) {
-    if (list.nextElementSibling && isContainer(list.nextElementSibling)) {
-      return list.nextElementSibling;
-    } else {
-      const container = createMarginContainer(doc);
-      if (list.parentNode) {
-        list.parentNode.insertBefore(container, list.nextElementSibling);
-      }
-      return container;
-    }
-  }
-
   // Find the callout parent and create a container for the callout there
   // Walks up the parent stack until a callout element is found
   const findCalloutEl = (el: Element): Element | undefined => {
@@ -1771,9 +1768,23 @@ const marginContainerForEl = (el: Element, doc: Document) => {
     return container;
   }
 
+  // Check for a list or table
+  const list = findOutermostParentElOfType(el, ["OL", "UL", "TABLE"]);
+  if (list) {
+    if (list.nextElementSibling && isContainer(list.nextElementSibling)) {
+      return list.nextElementSibling;
+    } else {
+      const container = createMarginContainer(doc);
+      if (list.parentNode) {
+        list.parentNode.insertBefore(container, list.nextElementSibling);
+      }
+      return container;
+    }
+  }
+
   // Deal with a paragraph
   const parentEl = el.parentElement;
-  const cantContainBlockTags = ["P"];
+  const cantContainBlockTags = ["P", "BLOCKQUOTE"];
   if (parentEl && cantContainBlockTags.includes(parentEl.tagName)) {
     // See if this para has a parent div with a container
     if (
@@ -1807,6 +1818,17 @@ const addContentToMarginContainerForEl = (
   const container = marginContainerForEl(el, doc);
   if (container) {
     container.appendChild(content);
+  }
+};
+
+const addNodesToMarginContainerForEl = (
+  el: Element,
+  nodes: NodeList,
+  doc: Document,
+) => {
+  const container = marginContainerForEl(el, doc);
+  if (container) {
+    container.append(...nodes);
   }
 };
 
