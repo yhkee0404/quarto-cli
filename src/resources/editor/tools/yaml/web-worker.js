@@ -16100,17 +16100,6 @@ try {
             description: "Specify whether to use `atx` (`#`-prefixed) or\n`setext` (underlined) headings for level 1 and 2\nheadings (`atx` or `setext`).\n"
           },
           {
-            name: "keep-yaml",
-            tags: {
-              formats: [
-                "$markdown-all"
-              ]
-            },
-            schema: "boolean",
-            default: false,
-            description: "Preserve the original YAML front matter in rendered markdown"
-          },
-          {
             name: "ipynb-output",
             tags: {
               formats: [
@@ -19580,6 +19569,7 @@ try {
           "The responsive breakpoint below which the navbar will collapse into a\nmenu (<code>sm</code>, <code>md</code>, <code>lg</code> (default),\n<code>xl</code>, <code>xxl</code>).",
           "List of items for the left side of the navbar.",
           "List of items for the right side of the navbar.",
+          "The position of the collapsed navbar toggle when in responsive\nmode",
           "Side navigation options",
           "The identifier for this sidebar.",
           "The sidebar title. Uses the project title if none is specified.",
@@ -19714,6 +19704,7 @@ try {
           "The responsive breakpoint below which the navbar will collapse into a\nmenu (<code>sm</code>, <code>md</code>, <code>lg</code> (default),\n<code>xl</code>, <code>xxl</code>).",
           "List of items for the left side of the navbar.",
           "List of items for the right side of the navbar.",
+          "The position of the collapsed navbar toggle when in responsive\nmode",
           "Side navigation options",
           "The identifier for this sidebar.",
           "The sidebar title. Uses the project title if none is specified.",
@@ -21886,6 +21877,7 @@ try {
           "The responsive breakpoint below which the navbar will collapse into a\nmenu (<code>sm</code>, <code>md</code>, <code>lg</code> (default),\n<code>xl</code>, <code>xxl</code>).",
           "List of items for the left side of the navbar.",
           "List of items for the right side of the navbar.",
+          "The position of the collapsed navbar toggle when in responsive\nmode",
           "Side navigation options",
           "The identifier for this sidebar.",
           "The sidebar title. Uses the project title if none is specified.",
@@ -22204,6 +22196,7 @@ try {
           "The responsive breakpoint below which the navbar will collapse into a\nmenu (<code>sm</code>, <code>md</code>, <code>lg</code> (default),\n<code>xl</code>, <code>xxl</code>).",
           "List of items for the left side of the navbar.",
           "List of items for the right side of the navbar.",
+          "The position of the collapsed navbar toggle when in responsive\nmode",
           "Side navigation options",
           "The identifier for this sidebar.",
           "The sidebar title. Uses the project title if none is specified.",
@@ -22640,15 +22633,16 @@ try {
             "(*",
             "*)"
           ],
+          rust: "//",
           mermaid: "%%"
         },
         "handlers/mermaid/schema.yml": {
-          _internalId: 180612,
+          _internalId: 180615,
           type: "object",
           description: "be an object",
           properties: {
             "mermaid-format": {
-              _internalId: 180604,
+              _internalId: 180607,
               type: "enum",
               enum: [
                 "png",
@@ -22664,7 +22658,7 @@ try {
               exhaustiveCompletions: true
             },
             theme: {
-              _internalId: 180611,
+              _internalId: 180614,
               type: "anyOf",
               anyOf: [
                 {
@@ -31833,7 +31827,8 @@ ${tidyverseInfo(
     dot: "//",
     ojs: "//",
     apl: "\u235D",
-    ocaml: ["(*", "*)"]
+    ocaml: ["(*", "*)"],
+    rust: "//"
   };
   function escapeRegExp(str2) {
     return str2.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
